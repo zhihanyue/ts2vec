@@ -88,6 +88,9 @@ if __name__ == '__main__':
         unit = 'epoch' if args.epochs is not None else 'iter'
         config[f'after_{unit}_callback'] = save_checkpoint_callback(args.save_every, unit)
     
+    if not os.path.exists('training'):
+        os.mkdir('training')
+    
     run_dir = 'training/' + args.dataset + '__' + name_with_datetime(args.run_name)
     os.mkdir(run_dir)
     

@@ -10,18 +10,17 @@ This repository contains the official implementation for the paper "Learning Tim
 
 ## Data
 
-The datasets can be obtained on the following locations:
+The datasets can be obtained and put into `datasets/` folder in the following way:
 
-[ETT datasets](https://github.com/zhouhaoyi/ETDataset)
-[UCR datasets](https://www.cs.ucr.edu/~eamonn/time_series_data_2018)
-[UEA datasets](http://www.timeseriesclassification.com)
-
-The datasets should be put into `datasets/` folder.
+* [3 ETT datasets](https://github.com/zhouhaoyi/ETDataset) should be placed at `datasets/ETTh1.csv`, `datasets/ETTh2.csv`, `datasets/ETTm1.csv`
+* [128 UCR datasets](https://www.cs.ucr.edu/~eamonn/time_series_data_2018) should be put into `datasets/UCR` so that each data file can be located by `datasets/UCR/<dataset_name>/<dataset_name>_*.csv`.
+* [30 UEA datasets](http://www.timeseriesclassification.com) should be put into `datasets/UEA` so that each data file can be located by `datasets/UEA/<dataset_name>/<dataset_name>_*.arff`.
+* [Electricity dataset](https://archive.ics.uci.edu/ml/datasets/ElectricityLoadDiagrams20112014) should be placed at `datasets/electricity.csv`.
 
 
 ## Usage
 
-To train and evaluate on a dataset, run the following command:
+To train and evaluate TS2Vec on a dataset, run the following command:
 
 ```train & evaluate
 python train.py <dataset_name> <run_name> --archive <archive> --batch-size <batch_size> --repr-dims <repr_dims> --gpu <gpu> --eval
@@ -39,7 +38,7 @@ The detailed descriptions about the arguments are as following:
 
 (For descriptions of more arguments, run `python train.py -h`.)
 
-After running the above command, the trained encoder, output and evaluation metrics can be found in `training/DatasetName__RunName_Date_Time/`. 
+After training and evaluation, the trained encoder, output and evaluation metrics can be found in `training/DatasetName__RunName_Date_Time/`. 
 
 **Scripts:** The scripts for reproduction are provided in `scripts/` folder.
 
@@ -68,6 +67,6 @@ loss_log = model.fit(
 test_repr = model.encode(test_data)
 
 # Sliding inference for test set
-test_repr = model.encode(test_data, casual=True, sliding_padding=100)
-    # the timestamp t's representation vector is obtained using the data located in [t-99, t]
+test_repr = model.encode(test_data, casual=True, sliding_padding=50)
+    # the timestamp t's representation vector is computed using the observations located in [t-50+1, t]
 ```
