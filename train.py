@@ -25,9 +25,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('dataset')
     parser.add_argument('run_name')
-    parser.add_argument('--archive', type=str, default=None)
+    parser.add_argument('--archive', type=str, required=True)
     parser.add_argument('--gpu', type=int, default=0)
     parser.add_argument('--batch-size', type=int, default=8)
+    parser.add_argument('--lr', type=int, default=0.001)
     parser.add_argument('--repr-dims', type=int, default=320)
     parser.add_argument('--max-train-length', type=int, default=3000)
     parser.add_argument('--iters', type=int, default=None)
@@ -78,6 +79,7 @@ if __name__ == '__main__':
     
     config = dict(
         batch_size=args.batch_size,
+        lr=args.lr,
         output_dims=args.repr_dims,
         max_train_length=args.max_train_length
     )
