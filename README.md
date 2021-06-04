@@ -47,10 +47,10 @@ After training and evaluation, the trained encoder, output and evaluation metric
 
 ```python
 from ts2vec import TS2Vec
-import datasets
+import datautils
 
 # Load StarLightCurves dataset from UCR archive
-train_data, train_labels, test_data, test_labels = datasets.load_UCR('StarLightCurves')
+train_data, train_labels, test_data, test_labels = datautils.load_UCR('StarLightCurves')
 
 # Training TS2Vec
 model = TS2Vec(
@@ -68,5 +68,5 @@ test_repr = model.encode(test_data)
 
 # Sliding inference for test set
 test_repr = model.encode(test_data, casual=True, sliding_padding=50)
-    # the timestamp t's representation vector is computed using the observations located in [t-50+1, t]
+# the timestamp t's representation vector is computed using the observations located in [t-50+1, t]
 ```
