@@ -37,7 +37,9 @@ The detailed descriptions about the arguments are as following:
 | gpu | The gpu no. used for training and inference (defaults to 0) |
 | eval | Whether to perform evaluation after training |
 
-After running the above command, the trained encoder, output and evaluation metrics can be found in `training/DatasetName__RunName_Date_Time/`. For descriptions of more arguments, run `python train.py -h`.
+(For descriptions of more arguments, run `python train.py -h`.)
+
+After running the above command, the trained encoder, output and evaluation metrics can be found in `training/DatasetName__RunName_Date_Time/`. 
 
 **Scripts:** The scripts for reproduction are provided in `scripts/` folder.
 
