@@ -2,9 +2,11 @@
 
 This repository contains the official implementation for the paper "Learning Timestamp-Level Representations for Time Series with Hierarchical Contrastive Loss".
 
+
 ## Requirements
 
 [TODO]
+
 
 ## Data
 
@@ -16,6 +18,7 @@ The datasets can be obtained on the following locations:
 
 The datasets should be put into `datasets/` folder.
 
+
 ## Usage
 
 To train and evaluate on a dataset, run the following command:
@@ -26,17 +29,18 @@ python train.py <dataset_name> <run_name> --archive <archive> --batch-size <batc
 The detailed descriptions about the arguments are as following:
 | Parameter name | Description of parameter |
 | --- | --- |
-| dataset_name | The dataset name. |
-| run_name | The folder name used to save model, output and evaluation metrics. This can be set to any word. |
-| archive | The archive name that the dataset belongs to. This can be set to `UCR`, `UEA`, `forecast_csv`, or `forecast_csv_univar`. |
-| batch_size | The batch size, defaults to 8. |
-| repr_dims | The representation dimensions, defaults to 320. |
-| gpu | The gpu number used for training and inference, defaults to 0. |
-| eval | Whether to perform evaluation after training. |
+| dataset_name | The dataset name |
+| run_name | The folder name used to save model, output and evaluation metrics. This can be set to any word |
+| archive | The archive name that the dataset belongs to. This can be set to `UCR`, `UEA`, `forecast_csv`, or `forecast_csv_univar` |
+| batch_size | The batch size (defaults to 8) |
+| repr_dims | The representation dimensions (defaults to 320) |
+| gpu | The gpu no. used for training and inference (defaults to 0) |
+| eval | Whether to perform evaluation after training |
 
 After running the above command, the trained encoder, output and evaluation metrics can be found in `training/DatasetName__RunName_Date_Time/`. For descriptions of more arguments, run `python train.py -h`.
 
 **Scripts:** The scripts for reproduction are provided in `scripts/` folder.
+
 
 ## Code Example
 
@@ -44,7 +48,7 @@ After running the above command, the trained encoder, output and evaluation metr
 from ts2vec import TS2Vec
 import datasets
 
-# Load dataset
+# Load StarLightCurves dataset from UCR archive
 train_data, train_labels, test_data, test_labels = datasets.load_UCR('StarLightCurves')
 
 # Training TS2Vec
@@ -62,5 +66,6 @@ loss_log = model.fit(
 test_repr = model.encode(test_data)
 
 # Sliding inference for test set
-test_repr = model.encode(test_data, casual=True, sliding_padding=100)  # the timestamp t's representation vector is obtained using the data located in [t-99, t]
+test_repr = model.encode(test_data, casual=True, sliding_padding=100)
+    # the timestamp t's representation vector is obtained using the data located in [t-99, t]
 ```
