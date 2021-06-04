@@ -8,6 +8,8 @@ from utils import take_per_row, split_with_nan, centerize_vary_length_series, to
 import math
 
 class TS2Vec:
+    '''The TS2Vec model'''
+    
     def __init__(
         self,
         input_dims,
@@ -22,6 +24,22 @@ class TS2Vec:
         after_iter_callback=None,
         after_epoch_callback=None
     ):
+        ''' Initialize a TS2Vec model.
+        
+        Args:
+            input_dims (int): The input dimension. For a univariate time series, this should be set to 1.
+            output_dims (int): The representation dimension.
+            hidden_dims (int): The hidden dimension of the encoder.
+            depth (int): The number of hidden residual blocks in the encoder.
+            device (int): The gpu used for training and inference.
+            lr (int): The learning rate.
+            batch_size (int): The batch size.
+            max_train_length (Union[int, NoneType]): The maximum allowed sequence length for training. For sequence with a length greater than <max_train_length>, it would be cropped into some sequences, each of which has a length less than <max_train_length>.
+            temporal_unit (int): The minimum unit to perform temporal contrast. When training very long sequence, this param helps to reduce the cost of time and memory.
+            after_iter_callback (Union[Callable, NoneType]): A callback function that would be called after each iteration.
+            after_epoch_callback (Union[Callable, NoneType]): A callback function that would be called after each epoch.
+        '''
+        
         super().__init__()
         self.device = device
         self.lr = lr
@@ -40,6 +58,17 @@ class TS2Vec:
         self.n_iters = 0
     
     def fit(self, train_data, n_epochs=None, n_iters=None, verbose=False):
+        ''' Training the TS2Vec model.
+        
+        Args:
+            train_data (numpy.ndarray): The training data. It should have a shape of (n_instance, n_timestamps, n_features). All missing data should be set to NaN.
+            n_epochs (Union[int, NoneType]): The number of epochs. When this reaches, the training stops.
+            n_iters (Union[int, NoneType]): The number of iterations. When this reaches, the training stops. If both n_epochs and n_iters are not specified, a default setting would be used that sets n_iters to 200 for a dataset with size <= 100000, 600 otherwise.
+            verbose (bool): Whether to print the training loss after each epoch.
+            
+        Returns:
+            loss_log: a list containing the training losses on each epoch.
+        '''
         assert train_data.ndim == 3
         
         if n_iters is None and n_epochs is None:
@@ -175,6 +204,20 @@ class TS2Vec:
         return out.cpu()
     
     def encode(self, data, mask=None, encoding_window=None, casual=False, sliding_length=None, sliding_padding=0, batch_size=None):
+        ''' Compute representations using the model.
+        
+        Args:
+            data (numpy.ndarray): This should have a shape of (n_instance, n_timestamps, n_features). All missing data should be set to NaN.
+            mask (str): The mask used by encoder can be specified with this parameter. This can be set to 'binomial', 'continuous', 'all_true', 'all_false' or 'mask_last'.
+            encoding_window (Union[str, int]): When this param is specified, the computed representation would the max pooling over this window. This can be set to 'full_series', 'multiscale' or an integer specifying the pooling kernel size.
+            casual (bool): When this param is set to True, the future informations would not be encoded into representation of each timestamp.
+            sliding_length (Union[int, NoneType]): The length of sliding window. When this param is specified, a sliding inference would be applied on the time series.
+            sliding_padding (int): This param specifies the contextual data length used for inference every sliding windows.
+            batch_size (Union[int, NoneType]): The batch size used for inference. If not specified, this would be the same batch size as training.
+            
+        Returns:
+            repr: The representations for data.
+        '''
         assert data.ndim == 3
         if batch_size is None:
             batch_size = self.batch_size
@@ -257,9 +300,19 @@ class TS2Vec:
         return output.numpy()
     
     def save(self, fn):
+        ''' Save the model to a file.
+        
+        Args:
+            fn (str): filename.
+        '''
         torch.save(self.net.state_dict(), fn)
     
     def load(self, fn):
+        ''' Load the model from a file.
+        
+        Args:
+            fn (str): filename.
+        '''
         state_dict = torch.load(fn, map_location=self.device)
         self.net.load_state_dict(state_dict)
     

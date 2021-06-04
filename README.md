@@ -24,7 +24,7 @@ The datasets can be obtained and put into `datasets/` folder in the following wa
 * [128 UCR datasets](https://www.cs.ucr.edu/~eamonn/time_series_data_2018) should be put into `datasets/UCR/` so that each data file can be located by `datasets/UCR/<dataset_name>/<dataset_name>_*.csv`.
 * [30 UEA datasets](http://www.timeseriesclassification.com) should be put into `datasets/UEA/` so that each data file can be located by `datasets/UEA/<dataset_name>/<dataset_name>_*.arff`.
 * [3 ETT datasets](https://github.com/zhouhaoyi/ETDataset) should be placed at `datasets/ETTh1.csv`, `datasets/ETTh2.csv` and `datasets/ETTm1.csv`.
-* [Electricity dataset](https://archive.ics.uci.edu/ml/datasets/ElectricityLoadDiagrams20112014) should be resampled into hourly data of 321 clients over last 3 years and placed at `datasets/electricity.csv`.
+* [Electricity dataset](https://archive.ics.uci.edu/ml/datasets/ElectricityLoadDiagrams20112014) should be resampled into hourly data of 321 clients over the last 3 years and placed at `datasets/electricity.csv`.
 
 
 ## Usage
@@ -39,7 +39,7 @@ The detailed descriptions about the arguments are as following:
 | --- | --- |
 | dataset_name | The dataset name |
 | run_name | The folder name used to save model, output and evaluation metrics. This can be set to any word |
-| archive | The archive name that the dataset belongs to. This can be set to `UCR`, `UEA`, `forecast_csv`, or `forecast_csv_univar` |
+| archive | The archive name that the dataset belongs to. This can be set to `UCR`, `UEA`, `forecast_csv` or `forecast_csv_univar` |
 | batch_size | The batch size (defaults to 8) |
 | repr_dims | The representation dimensions (defaults to 320) |
 | gpu | The gpu no. used for training and inference (defaults to 0) |
@@ -58,11 +58,11 @@ After training and evaluation, the trained encoder, output and evaluation metric
 from ts2vec import TS2Vec
 import datautils
 
-# Load StarLightCurves dataset from UCR archive
-train_data, train_labels, test_data, test_labels = datautils.load_UCR('StarLightCurves')
-# Both train_data and test_data have a shape of n_instances x n_timestamps x n_features
+# Load the ECG200 dataset from UCR archive
+train_data, train_labels, test_data, test_labels = datautils.load_UCR('ECG200')
+# (Both train_data and test_data have a shape of n_instances x n_timestamps x n_features)
 
-# Training TS2Vec
+# Train a TS2Vec model
 model = TS2Vec(
     input_dims=1,
     device=0,
@@ -73,10 +73,18 @@ loss_log = model.fit(
     verbose=True
 )
 
-# Obtain learned representations for test set
-test_repr = model.encode(test_data)
+# Compute timestamp-level representations for test set
+test_repr = model.encode(test_data)  # n_instances x n_timestamps x output_dims
+
+# Compute instance-level representations for test set
+test_repr = model.encode(test_data, encoding_window='full_series')  # n_instances x output_dims
 
 # Sliding inference for test set
-test_repr = model.encode(test_data, casual=True, sliding_padding=50)
-# The timestamp t's representation vector is computed using the observations located in [t-50+1, t]
+test_repr = model.encode(
+    test_data,
+    casual=True,
+    sliding_length=1,
+    sliding_padding=50
+)  # n_instances x n_timestamps x output_dims
+# (The timestamp t's representation vector is computed using the observations located in [t-50+1, t])
 ```
