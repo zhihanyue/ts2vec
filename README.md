@@ -18,7 +18,7 @@ The datasets should be put into `datasets/` folder.
 
 ## Usage
 
-To train and evaluate on some dataset, run the following command:
+To train and evaluate on a dataset, run the following command:
 
 ```train & evaluate
 python train.py <dataset_name> <run_name> --archive <archive> --batch-size <batch_size> --repr-dims <repr_dims> --gpu <gpu> --eval
@@ -32,15 +32,35 @@ The detailed descriptions about the arguments are as following:
 | batch_size | The batch size, defaults to 8. |
 | repr_dims | The representation dimensions, defaults to 320. |
 | gpu | The gpu number used for training and inference, defaults to 0. |
-| eval | Whether to evaluation after training. |
+| eval | Whether to perform evaluation after training. |
 
-After running the above command, the model, output and evaluation metrics can be found in `training/DatasetName__RunName_*/`. For more argument descriptions, run `python train.py -h`.
+After running the above command, the trained encoder, output and evaluation metrics can be found in `training/DatasetName__RunName_Date_Time/`. For descriptions of more arguments, run `python train.py -h`.
 
-To facilitate reproduction of our results, the scripts for experiments are provided in `scripts/` folder.
+**Scripts:** The scripts for reproduction are provided in `scripts/` folder.
 
-## Code Examples
+## Code Example
 
-[TODO]
+```python
+from ts2vec import TS2Vec
+import datasets
 
+# Load dataset
+train_data, train_labels, test_data, test_labels = datasets.load_UCR('StarLightCurves')
 
+# Training TS2Vec
+model = TS2Vec(
+    input_dims=1,
+    device=0,
+    output_dims=320
+)
+loss_log = model.fit(
+    train_data,
+    verbose=True
+)
 
+# Obtain learned representations for test set
+test_repr = model.encode(test_data)
+
+# Sliding inference for test set
+test_repr = model.encode(test_data, casual=True, sliding_padding=100)  # the timestamp t's representation vector is obtained using the data located in [t-99, t]
+```
