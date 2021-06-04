@@ -68,14 +68,14 @@ if __name__ == '__main__':
         data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols = datautils.load_forecast_npy(args.dataset, univar=True)
         train_data = data[:, train_slice]
     else:
-        assert False, 'unknown archive'
+        raise ValueError(f"Archive type {args.archive} is not supported.")
         
     if args.irregular > 0:
         if task_type == 'classification':
             train_data = data_dropout(train_data, args.irregular)
             test_data = data_dropout(test_data, args.irregular)
         else:
-            assert False
+            raise ValueError(f"Task type {task_type} is not supported when irregular is positive.")
     
     config = dict(
         batch_size=args.batch_size,
