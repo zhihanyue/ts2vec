@@ -87,12 +87,9 @@ if __name__ == '__main__':
     if args.save_every is not None:
         unit = 'epoch' if args.epochs is not None else 'iter'
         config[f'after_{unit}_callback'] = save_checkpoint_callback(args.save_every, unit)
-    
-    if not os.path.exists('training'):
-        os.mkdir('training')
-    
+
     run_dir = 'training/' + args.dataset + '__' + name_with_datetime(args.run_name)
-    os.mkdir(run_dir)
+    os.makedirs(run_dir, exist_ok=True)
     
     t = time.time()
     
@@ -110,9 +107,7 @@ if __name__ == '__main__':
     model.save(f'{run_dir}/model.pkl')
 
     t = time.time() - t
-
-    print()
-    print(f"Training time: {datetime.timedelta(seconds=t)}\n")
+    print(f"\nTraining time: {datetime.timedelta(seconds=t)}\n")
 
     if args.eval:
         if task_type == 'classification':
@@ -124,6 +119,5 @@ if __name__ == '__main__':
         pkl_save(f'{run_dir}/out.pkl', out)
         pkl_save(f'{run_dir}/eval_res.pkl', eval_res)
         print('Evaluation result:', eval_res)
-        
-    print()
-    
+
+    print("Finished.")
