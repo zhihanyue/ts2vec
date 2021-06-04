@@ -1,6 +1,6 @@
 # TS2Vec
 
-This repository contains the official implementation for the paper "Learning Timestamp-Level Representations for Time Series with Hierarchical Contrastive Loss".
+This repository contains the official implementation for the paper *Learning Timestamp-Level Representations for Time Series with Hierarchical Contrastive Loss*.
 
 
 ## Requirements
@@ -12,9 +12,9 @@ This repository contains the official implementation for the paper "Learning Tim
 
 The datasets can be obtained and put into `datasets/` folder in the following way:
 
-* [3 ETT datasets](https://github.com/zhouhaoyi/ETDataset) should be placed at `datasets/ETTh1.csv`, `datasets/ETTh2.csv`, `datasets/ETTm1.csv`
-* [128 UCR datasets](https://www.cs.ucr.edu/~eamonn/time_series_data_2018) should be put into `datasets/UCR` so that each data file can be located by `datasets/UCR/<dataset_name>/<dataset_name>_*.csv`.
-* [30 UEA datasets](http://www.timeseriesclassification.com) should be put into `datasets/UEA` so that each data file can be located by `datasets/UEA/<dataset_name>/<dataset_name>_*.arff`.
+* [3 ETT datasets](https://github.com/zhouhaoyi/ETDataset) should be placed at `datasets/ETTh1.csv`, `datasets/ETTh2.csv` and `datasets/ETTm1.csv`.
+* [128 UCR datasets](https://www.cs.ucr.edu/~eamonn/time_series_data_2018) should be put into `datasets/UCR/` so that each data file can be located by `datasets/UCR/<dataset_name>/<dataset_name>_*.csv`.
+* [30 UEA datasets](http://www.timeseriesclassification.com) should be put into `datasets/UEA/` so that each data file can be located by `datasets/UEA/<dataset_name>/<dataset_name>_*.arff`.
 * [Electricity dataset](https://archive.ics.uci.edu/ml/datasets/ElectricityLoadDiagrams20112014) should be placed at `datasets/electricity.csv`.
 
 
