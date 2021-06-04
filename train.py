@@ -7,7 +7,7 @@ import time
 import datetime
 from ts2vec import TS2Vec
 import tasks
-import datasets
+import datautils
 from utils import init_dl_program, name_with_datetime, pkl_save, data_dropout
 
 def save_checkpoint_callback(
@@ -47,35 +47,35 @@ if __name__ == '__main__':
     
     if args.archive == 'UCR':
         task_type = 'classification'
-        train_data, train_labels, test_data, test_labels = datasets.load_UCR(args.dataset)
+        train_data, train_labels, test_data, test_labels = datautils.load_UCR(args.dataset)
     elif args.archive == 'UEA':
         task_type = 'classification'
-        train_data, train_labels, test_data, test_labels = datasets.load_UEA(args.dataset)
+        train_data, train_labels, test_data, test_labels = datautils.load_UEA(args.dataset)
     elif args.archive == 'forecast_csv':
         task_type = 'forecasting'
-        data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols = datasets.load_forecast_csv(args.dataset)
+        data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols = datautils.load_forecast_csv(args.dataset)
         train_data = data[:, train_slice]
     elif args.archive == 'forecast_csv_univar':
         task_type = 'forecasting'
-        data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols = datasets.load_forecast_csv(args.dataset, univar=True)
+        data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols = datautils.load_forecast_csv(args.dataset, univar=True)
         train_data = data[:, train_slice]
     elif args.archive == 'forecast_npy':
         task_type = 'forecasting'
-        data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols = datasets.load_forecast_npy(args.dataset)
+        data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols = datautils.load_forecast_npy(args.dataset)
         train_data = data[:, train_slice]
     elif args.archive == 'forecast_npy_univar':
         task_type = 'forecasting'
-        data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols = datasets.load_forecast_npy(args.dataset, univar=True)
+        data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols = datautils.load_forecast_npy(args.dataset, univar=True)
         train_data = data[:, train_slice]
     else:
-        assert False, 'unknown archive'
+        raise ValueError(f"Archive type {args.archive} is not supported.")
         
     if args.irregular > 0:
         if task_type == 'classification':
             train_data = data_dropout(train_data, args.irregular)
             test_data = data_dropout(test_data, args.irregular)
         else:
-            assert False
+            raise ValueError(f"Task type {task_type} is not supported when irregular is positive.")
     
     config = dict(
         batch_size=args.batch_size,
@@ -87,12 +87,9 @@ if __name__ == '__main__':
     if args.save_every is not None:
         unit = 'epoch' if args.epochs is not None else 'iter'
         config[f'after_{unit}_callback'] = save_checkpoint_callback(args.save_every, unit)
-    
-    if not os.path.exists('training'):
-        os.mkdir('training')
-    
+
     run_dir = 'training/' + args.dataset + '__' + name_with_datetime(args.run_name)
-    os.mkdir(run_dir)
+    os.makedirs(run_dir, exist_ok=True)
     
     t = time.time()
     
@@ -110,9 +107,7 @@ if __name__ == '__main__':
     model.save(f'{run_dir}/model.pkl')
 
     t = time.time() - t
-
-    print()
-    print(f"Training time: {datetime.timedelta(seconds=t)}\n")
+    print(f"\nTraining time: {datetime.timedelta(seconds=t)}\n")
 
     if args.eval:
         if task_type == 'classification':
@@ -124,6 +119,5 @@ if __name__ == '__main__':
         pkl_save(f'{run_dir}/out.pkl', out)
         pkl_save(f'{run_dir}/eval_res.pkl', eval_res)
         print('Evaluation result:', eval_res)
-        
-    print()
-    
+
+    print("Finished.")

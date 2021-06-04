@@ -176,4 +176,3 @@ def load_forecast_csv(name, univar=False):
         pred_lens = [24, 48, 96, 288, 672]
         
     return data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols
-
