@@ -4,8 +4,18 @@ This repository contains the official implementation for the paper *Learning Tim
 
 ## Requirements
 
-[TODO]
+Recommended requirements for TS2Vec are specified as follows:
+* Python 3.8
+* scipy==1.6.1
+* torch==1.8.1
+* numpy==1.19.2
+* pandas==1.0.1
+* scikit_learn==0.24.1
 
+The dependencies can be installed by:
+```bash
+pip install -r requirements.txt
+```
 
 ## Data
 
@@ -14,7 +24,7 @@ The datasets can be obtained and put into `datasets/` folder in the following wa
 * [3 ETT datasets](https://github.com/zhouhaoyi/ETDataset) should be placed at `datasets/ETTh1.csv`, `datasets/ETTh2.csv` and `datasets/ETTm1.csv`.
 * [128 UCR datasets](https://www.cs.ucr.edu/~eamonn/time_series_data_2018) should be put into `datasets/UCR/` so that each data file can be located by `datasets/UCR/<dataset_name>/<dataset_name>_*.csv`.
 * [30 UEA datasets](http://www.timeseriesclassification.com) should be put into `datasets/UEA/` so that each data file can be located by `datasets/UEA/<dataset_name>/<dataset_name>_*.arff`.
-* [Electricity dataset](https://archive.ics.uci.edu/ml/datasets/ElectricityLoadDiagrams20112014) should be placed at `datasets/electricity.csv`.
+* [Electricity dataset](https://archive.ics.uci.edu/ml/datasets/ElectricityLoadDiagrams20112014) should be resampled into hourly data of 321 clients over last 3 years and placed at `datasets/electricity.csv`.
 
 
 ## Usage
