@@ -4,7 +4,7 @@ This repository contains the official implementation for the paper *Learning Tim
 
 ## Requirements
 
-Recommended requirements for TS2Vec are specified as follows:
+The recommended requirements for TS2Vec are specified as follows:
 * Python 3.8
 * scipy==1.6.1
 * torch==1.8.1
