@@ -35,7 +35,7 @@ class TS2Vec:
             lr (int): The learning rate.
             batch_size (int): The batch size.
             max_train_length (Union[int, NoneType]): The maximum allowed sequence length for training. For sequence with a length greater than <max_train_length>, it would be cropped into some sequences, each of which has a length less than <max_train_length>.
-            temporal_unit (int): The minimum unit to perform temporal contrast. When training very long sequence, this param helps to reduce the cost of time and memory.
+            temporal_unit (int): The minimum unit to perform temporal contrast. When training on a very long sequence, this param helps to reduce the cost of time and memory.
             after_iter_callback (Union[Callable, NoneType]): A callback function that would be called after each iteration.
             after_epoch_callback (Union[Callable, NoneType]): A callback function that would be called after each epoch.
         '''
@@ -218,6 +218,7 @@ class TS2Vec:
         Returns:
             repr: The representations for data.
         '''
+        assert self.net is not None, 'please train or load a net first'
         assert data.ndim == 3
         if batch_size is None:
             batch_size = self.batch_size

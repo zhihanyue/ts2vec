@@ -25,7 +25,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('dataset', help='The dataset name')
     parser.add_argument('run_name', help='The folder name used to save model, output and evaluation metrics. This can be set to any word')
-    parser.add_argument('--archive', type=str, required=True, help='The archive name that the dataset belongs to. This can be set to UCR, UEA, forecast_csv, or forecast_csv_univar')
+    parser.add_argument('--loader', type=str, required=True, help='The data loader used to load the experimental data. This can be set to UCR, UEA, forecast_csv, forecast_csv_univar, anomaly, or anomaly_coldstart')
     parser.add_argument('--gpu', type=int, default=0, help='The gpu no. used for training and inference (defaults to 0)')
     parser.add_argument('--batch-size', type=int, default=8, help='The batch size (defaults to 8)')
     parser.add_argument('--lr', type=int, default=0.001, help='The learning rate (defaults to 0.001)')
@@ -45,37 +45,56 @@ if __name__ == '__main__':
     
     device = init_dl_program(args.gpu, seed=args.seed, max_threads=args.max_threads)
     
-    if args.archive == 'UCR':
+    print('Loading data... ', end='')
+    if args.loader == 'UCR':
         task_type = 'classification'
         train_data, train_labels, test_data, test_labels = datautils.load_UCR(args.dataset)
-    elif args.archive == 'UEA':
+        
+    elif args.loader == 'UEA':
         task_type = 'classification'
         train_data, train_labels, test_data, test_labels = datautils.load_UEA(args.dataset)
-    elif args.archive == 'forecast_csv':
+        
+    elif args.loader == 'forecast_csv':
         task_type = 'forecasting'
         data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols = datautils.load_forecast_csv(args.dataset)
         train_data = data[:, train_slice]
-    elif args.archive == 'forecast_csv_univar':
+        
+    elif args.loader == 'forecast_csv_univar':
         task_type = 'forecasting'
         data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols = datautils.load_forecast_csv(args.dataset, univar=True)
         train_data = data[:, train_slice]
-    elif args.archive == 'forecast_npy':
+        
+    elif args.loader == 'forecast_npy':
         task_type = 'forecasting'
         data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols = datautils.load_forecast_npy(args.dataset)
         train_data = data[:, train_slice]
-    elif args.archive == 'forecast_npy_univar':
+        
+    elif args.loader == 'forecast_npy_univar':
         task_type = 'forecasting'
         data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols = datautils.load_forecast_npy(args.dataset, univar=True)
         train_data = data[:, train_slice]
+        
+    elif args.loader == 'anomaly':
+        task_type = 'anomaly_detection'
+        all_train_data, all_train_labels, all_train_timestamps, all_test_data, all_test_labels, all_test_timestamps, delay = datautils.load_anomaly(args.dataset)
+        train_data = datautils.gen_ano_train_data(all_train_data)
+        
+    elif args.loader == 'anomaly_coldstart':
+        task_type = 'anomaly_detection_coldstart'
+        all_train_data, all_train_labels, all_train_timestamps, all_test_data, all_test_labels, all_test_timestamps, delay = datautils.load_anomaly(args.dataset)
+        train_data, _, _, _ = datautils.load_UCR('FordA')
+        
     else:
-        raise ValueError(f"Archive type {args.archive} is not supported.")
+        raise ValueError(f"Unknown loader {args.loader}.")
+        
         
     if args.irregular > 0:
         if task_type == 'classification':
             train_data = data_dropout(train_data, args.irregular)
             test_data = data_dropout(test_data, args.irregular)
         else:
-            raise ValueError(f"Task type {task_type} is not supported when irregular is positive.")
+            raise ValueError(f"Task type {task_type} is not supported when irregular>0.")
+    print('done')
     
     config = dict(
         batch_size=args.batch_size,
@@ -114,6 +133,10 @@ if __name__ == '__main__':
             out, eval_res = tasks.eval_classification(model, train_data, train_labels, test_data, test_labels, eval_protocol='svm')
         elif task_type == 'forecasting':
             out, eval_res = tasks.eval_forecasting(model, data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols)
+        elif task_type == 'anomaly_detection':
+            out, eval_res = tasks.eval_anomaly_detection(model, all_train_data, all_train_labels, all_train_timestamps, all_test_data, all_test_labels, all_test_timestamps, delay)
+        elif task_type == 'anomaly_detection_coldstart':
+            out, eval_res = tasks.eval_anomaly_detection_coldstart(model, all_train_data, all_train_labels, all_train_timestamps, all_test_data, all_test_labels, all_test_timestamps, delay)
         else:
             assert False
         pkl_save(f'{run_dir}/out.pkl', out)

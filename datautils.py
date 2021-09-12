@@ -1,11 +1,11 @@
 import os
 import numpy as np
-import torch
 import pandas as pd
 import math
 import random
 from datetime import datetime
 import pickle
+from utils import pkl_load, pad_nan_to_target
 from scipy.io.arff import loadarff
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
@@ -104,6 +104,7 @@ def load_UEA(dataset):
     test_y = np.vectorize(transform.get)(test_y)
     return train_X, train_y, test_X, test_y
     
+    
 def load_forecast_npy(name, univar=False):
     data = np.load(f'datasets/{name}.npy')    
     if univar:
@@ -120,6 +121,7 @@ def load_forecast_npy(name, univar=False):
     pred_lens = [24, 48, 96, 288, 672]
     return data, train_slice, valid_slice, test_slice, scaler, pred_lens, 0
 
+
 def _get_time_features(dt):
     return np.stack([
         dt.minute.to_numpy(),
@@ -130,6 +132,7 @@ def _get_time_features(dt):
         dt.month.to_numpy(),
         dt.weekofyear.to_numpy(),
     ], axis=1).astype(np.float)
+
 
 def load_forecast_csv(name, univar=False):
     data = pd.read_csv(f'datasets/{name}.csv', index_col='date', parse_dates=True)
@@ -176,3 +179,20 @@ def load_forecast_csv(name, univar=False):
         pred_lens = [24, 48, 96, 288, 672]
         
     return data, train_slice, valid_slice, test_slice, scaler, pred_lens, n_covariate_cols
+
+
+def load_anomaly(name):
+    res = pkl_load(f'datasets/{name}.pkl')
+    return res['all_train_data'], res['all_train_labels'], res['all_train_timestamps'], \
+           res['all_test_data'],  res['all_test_labels'],  res['all_test_timestamps'], \
+           res['delay']
+
+
+def gen_ano_train_data(all_train_data):
+    maxl = np.max([ len(all_train_data[k]) for k in all_train_data ])
+    pretrain_data = []
+    for k in all_train_data:
+        train_data = pad_nan_to_target(all_train_data[k], maxl, axis=0)
+        pretrain_data.append(train_data)
+    pretrain_data = np.expand_dims(np.stack(pretrain_data), 2)
+    return pretrain_data

@@ -1,10 +1,5 @@
-/datasets/UCR
-/datasets/UEA
-/datasets/electricity.csv
-/datasets/ETTh1.csv
-/datasets/ETTh2.csv
-/datasets/ETTm1.csv
+/datasets/*[!.py]
 .ipynb_checkpoints
 __pycache__
 training/*
-
+scripts/_nohup
