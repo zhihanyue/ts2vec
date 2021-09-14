@@ -1,6 +1,6 @@
 # TS2Vec
 
-This repository contains the official implementation for the paper [Learning Timestamp-Level Representations for Time Series with Hierarchical Contrastive Loss](https://arxiv.org/abs/2106.10466).
+This repository contains the official implementation for the paper [TS2Vec: Towards Universal Representation of Time Series](https://arxiv.org/abs/2106.10466).
 
 ## Requirements
 
