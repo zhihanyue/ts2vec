@@ -203,14 +203,14 @@ class TS2Vec:
             
         return out.cpu()
     
-    def encode(self, data, mask=None, encoding_window=None, casual=False, sliding_length=None, sliding_padding=0, batch_size=None):
+    def encode(self, data, mask=None, encoding_window=None, causal=False, sliding_length=None, sliding_padding=0, batch_size=None):
         ''' Compute representations using the model.
         
         Args:
             data (numpy.ndarray): This should have a shape of (n_instance, n_timestamps, n_features). All missing data should be set to NaN.
             mask (str): The mask used by encoder can be specified with this parameter. This can be set to 'binomial', 'continuous', 'all_true', 'all_false' or 'mask_last'.
             encoding_window (Union[str, int]): When this param is specified, the computed representation would the max pooling over this window. This can be set to 'full_series', 'multiscale' or an integer specifying the pooling kernel size.
-            casual (bool): When this param is set to True, the future informations would not be encoded into representation of each timestamp.
+            causal (bool): When this param is set to True, the future informations would not be encoded into representation of each timestamp.
             sliding_length (Union[int, NoneType]): The length of sliding window. When this param is specified, a sliding inference would be applied on the time series.
             sliding_padding (int): This param specifies the contextual data length used for inference every sliding windows.
             batch_size (Union[int, NoneType]): The batch size used for inference. If not specified, this would be the same batch size as training.
@@ -241,7 +241,7 @@ class TS2Vec:
                         calc_buffer_l = 0
                     for i in range(0, ts_l, sliding_length):
                         l = i - sliding_padding
-                        r = i + sliding_length + (sliding_padding if not casual else 0)
+                        r = i + sliding_length + (sliding_padding if not causal else 0)
                         x_sliding = torch_pad_nan(
                             x[:, max(l, 0) : min(r, ts_l)],
                             left=-l if l<0 else 0,

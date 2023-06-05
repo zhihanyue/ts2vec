@@ -94,7 +94,7 @@ def eval_anomaly_detection(model, all_train_data, all_train_labels, all_train_ti
         full_repr = model.encode(
             np.concatenate([train_data, test_data]).reshape(1, -1, 1),
             mask='mask_last',
-            casual=True,
+            causal=True,
             sliding_length=1,
             sliding_padding=200,
             batch_size=256
@@ -104,7 +104,7 @@ def eval_anomaly_detection(model, all_train_data, all_train_labels, all_train_ti
 
         full_repr_wom = model.encode(
             np.concatenate([train_data, test_data]).reshape(1, -1, 1),
-            casual=True,
+            causal=True,
             sliding_length=1,
             sliding_padding=200,
             batch_size=256
@@ -160,14 +160,14 @@ def eval_anomaly_detection_coldstart(model, all_train_data, all_train_labels, al
         all_repr[k] = model.encode(
             all_data[k].reshape(1, -1, 1),
             mask='mask_last',
-            casual=True,
+            causal=True,
             sliding_length=1,
             sliding_padding=200,
             batch_size=256
         ).squeeze()
         all_repr_wom[k] = model.encode(
             all_data[k].reshape(1, -1, 1),
-            casual=True,
+            causal=True,
             sliding_length=1,
             sliding_padding=200,
             batch_size=256

@@ -23,7 +23,7 @@ def eval_forecasting(model, data, train_slice, valid_slice, test_slice, scaler, 
     t = time.time()
     all_repr = model.encode(
         data,
-        casual=True,
+        causal=True,
         sliding_length=1,
         sliding_padding=padding,
         batch_size=256

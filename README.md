@@ -86,7 +86,7 @@ test_repr = model.encode(test_data, encoding_window='full_series')  # n_instance
 # Sliding inference for test set
 test_repr = model.encode(
     test_data,
-    casual=True,
+    causal=True,
     sliding_length=1,
     sliding_padding=50
 )  # n_instances x n_timestamps x output_dims
