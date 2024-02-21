@@ -24,7 +24,7 @@ def generate_binomial_mask(B, T, p=0.5):
     return torch.from_numpy(np.random.binomial(1, p, size=(B, T))).to(torch.bool)
 
 class TSEncoder(nn.Module):
-    def __init__(self, input_dims, output_dims, hidden_dims=64, depth=10, mask_mode='binomial'):
+    def __init__(self, input_dims, output_dims, hidden_dims=64, kernel_size=3, depth=10, mask_mode='binomial'):
         super().__init__()
         self.input_dims = input_dims
         self.output_dims = output_dims
@@ -34,7 +34,7 @@ class TSEncoder(nn.Module):
         self.feature_extractor = DilatedConvEncoder(
             hidden_dims,
             [hidden_dims] * depth + [output_dims],
-            kernel_size=3
+            kernel_size=kernel_size
         )
         self.repr_dropout = nn.Dropout(p=0.1)
         
