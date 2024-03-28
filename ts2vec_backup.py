@@ -6,7 +6,6 @@ from models import TSEncoder
 from models.losses import hierarchical_contrastive_loss
 from utils import take_per_row, split_with_nan, centerize_vary_length_series, torch_pad_nan
 import math
-from models.encoder import generate_binomial_mask
 
 class TS2Vec:
     '''The TS2Vec model'''
@@ -16,7 +15,6 @@ class TS2Vec:
         input_dims,
         output_dims=320,
         hidden_dims=64,
-        kernel_size=3,
         depth=10,
         device='cuda',
         lr=0.001,
@@ -49,7 +47,7 @@ class TS2Vec:
         self.max_train_length = max_train_length
         self.temporal_unit = temporal_unit
         
-        self._net = TSEncoder(input_dims=input_dims, output_dims=output_dims, hidden_dims=hidden_dims, kernel_size=kernel_size, depth=depth).to(self.device)
+        self._net = TSEncoder(input_dims=input_dims, output_dims=output_dims, hidden_dims=hidden_dims, depth=depth).to(self.device)
         self.net = torch.optim.swa_utils.AveragedModel(self._net)
         self.net.update_parameters(self._net)
         
@@ -59,7 +57,7 @@ class TS2Vec:
         self.n_epochs = 0
         self.n_iters = 0
     
-    def fit(self, train_data, val_data, n_epochs=None, n_iters=None, verbose=False):
+    def fit(self, train_data, n_epochs=None, n_iters=None, verbose=False):
         ''' Training the TS2Vec model.
         
         Args:
@@ -93,13 +91,11 @@ class TS2Vec:
         optimizer = torch.optim.AdamW(self._net.parameters(), lr=self.lr)
         
         loss_log = []
-        loss_val_log = []
         
         while True:
             if n_epochs is not None and self.n_epochs >= n_epochs:
                 break
-
-            # Train --------------------------------------------------------------------------------
+            
             cum_loss = 0
             n_epoch_iters = 0
             
@@ -125,14 +121,10 @@ class TS2Vec:
                 
                 optimizer.zero_grad()
                 
-                in1 = take_per_row(x, crop_offset + crop_eleft, crop_right - crop_eleft)
-                mask = generate_binomial_mask(in1.size(0), in1.size(1)).to(self.device)
-                out1 = self._net(in1, mask)
+                out1 = self._net(take_per_row(x, crop_offset + crop_eleft, crop_right - crop_eleft))
                 out1 = out1[:, -crop_l:]
                 
-                in2 = take_per_row(x, crop_offset + crop_left, crop_eright - crop_left)
-                mask = generate_binomial_mask(in2.size(0), in2.size(1)).to(self.device)
-                out2 = self._net(in2, mask)
+                out2 = self._net(take_per_row(x, crop_offset + crop_left, crop_eright - crop_left))
                 out2 = out2[:, :crop_l]
                 
                 loss = hierarchical_contrastive_loss(
@@ -158,77 +150,14 @@ class TS2Vec:
             
             cum_loss /= n_epoch_iters
             loss_log.append(cum_loss)
-
-            # calculate loss on validation data
-            loss_val = self.evaluate(val_data)
-            loss_val_log.append(loss_val)
             if verbose:
-                print(f"Epoch #{self.n_epochs}: train loss={cum_loss}")
-                print(f"Epoch #{self.n_epochs}: val loss={loss_val}")
-                print(" ")
+                print(f"Epoch #{self.n_epochs}: loss={cum_loss}")
             self.n_epochs += 1
             
             if self.after_epoch_callback is not None:
                 self.after_epoch_callback(self, cum_loss)
             
-        return loss_log, loss_val_log
-    
-    def evaluate(self, val_data):
-        ''' Evaluate the TS2Vec model on validation data.
-        
-        Args:
-            val_data (numpy.ndarray): The validation data. It should have a shape of (n_instance, n_timestamps, n_features). All missing data should be set to NaN.
-            
-        Returns:
-            loss_val: validation loss.
-        '''
-        assert val_data.ndim == 3
-        self.net.eval()
-
-        temporal_missing = np.isnan(val_data).all(axis=-1).any(axis=0)
-        if temporal_missing[0] or temporal_missing[-1]:
-            val_data = centerize_vary_length_series(val_data)
-                
-        val_data = val_data[~np.isnan(val_data).all(axis=2).all(axis=1)]
-        val_dataset = TensorDataset(torch.from_numpy(val_data).to(torch.float))
-        val_loader = DataLoader(val_dataset, batch_size=min(self.batch_size, len(val_dataset)), shuffle=True, drop_last=True)
-    
-        cum_loss_val=0
-        with torch.no_grad():
-            for batch in val_loader:
-                x = batch[0]
-                if self.max_train_length is not None and x.size(1) > self.max_train_length:
-                    window_offset = np.random.randint(x.size(1) - self.max_train_length + 1)
-                    x = x[:, window_offset : window_offset + self.max_train_length]
-                x = x.to(self.device)
-                    
-                ts_l = x.size(1)
-                crop_l = np.random.randint(low=2 ** (self.temporal_unit + 1), high=ts_l+1)
-                crop_left = np.random.randint(ts_l - crop_l + 1)
-                crop_right = crop_left + crop_l
-                crop_eleft = np.random.randint(crop_left + 1)
-                crop_eright = np.random.randint(low=crop_right, high=ts_l + 1)
-                crop_offset = np.random.randint(low=-crop_eleft, high=ts_l - crop_eright + 1, size=x.size(0))
-                
-                in1 = take_per_row(x, crop_offset + crop_eleft, crop_right - crop_eleft)
-                mask = generate_binomial_mask(in1.size(0), in1.size(1)).to(self.device)
-                out1 = self._net(in1, mask)
-                out1 = out1[:, -crop_l:]
-                
-                in2 = take_per_row(x, crop_offset + crop_left, crop_eright - crop_left)
-                mask = generate_binomial_mask(in2.size(0), in2.size(1)).to(self.device)
-                out2 = self._net(in2, mask)
-                out2 = out2[:, :crop_l]
-                    
-                loss_val = hierarchical_contrastive_loss(
-                    out1,
-                    out2,
-                    temporal_unit=self.temporal_unit
-                )
-                        
-                cum_loss_val += loss_val.item()
-            
-        return cum_loss_val
+        return loss_log
     
     def _eval_with_pooling(self, x, mask=None, slicing=None, encoding_window=None):
         out = self.net(x.to(self.device, non_blocking=True), mask)
