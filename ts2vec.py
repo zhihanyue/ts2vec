@@ -6,6 +6,7 @@ from models import TSEncoder
 from models.losses import hierarchical_contrastive_loss
 from utils import take_per_row, split_with_nan, centerize_vary_length_series, torch_pad_nan
 import math
+from models.encoder import generate_binomial_mask
 
 class TS2Vec:
     '''The TS2Vec model'''
@@ -124,10 +125,14 @@ class TS2Vec:
                 
                 optimizer.zero_grad()
                 
-                out1 = self._net(take_per_row(x, crop_offset + crop_eleft, crop_right - crop_eleft))
+                in1 = take_per_row(x, crop_offset + crop_eleft, crop_right - crop_eleft)
+                mask = generate_binomial_mask(in1.size(0), in1.size(1)).to(self.device)
+                out1 = self._net(in1, mask)
                 out1 = out1[:, -crop_l:]
                 
-                out2 = self._net(take_per_row(x, crop_offset + crop_left, crop_eright - crop_left))
+                in2 = take_per_row(x, crop_offset + crop_left, crop_eright - crop_left)
+                mask = generate_binomial_mask(in2.size(0), in2.size(1)).to(self.device)
+                out2 = self._net(in2, mask)
                 out2 = out2[:, :crop_l]
                 
                 loss = hierarchical_contrastive_loss(
@@ -204,11 +209,15 @@ class TS2Vec:
                 crop_eleft = np.random.randint(crop_left + 1)
                 crop_eright = np.random.randint(low=crop_right, high=ts_l + 1)
                 crop_offset = np.random.randint(low=-crop_eleft, high=ts_l - crop_eright + 1, size=x.size(0))
-                    
-                out1 = self._net(take_per_row(x, crop_offset + crop_eleft, crop_right - crop_eleft))
+                
+                in1 = take_per_row(x, crop_offset + crop_eleft, crop_right - crop_eleft)
+                mask = generate_binomial_mask(in1.size(0), in1.size(1)).to(self.device)
+                out1 = self._net(in1, mask)
                 out1 = out1[:, -crop_l:]
-                    
-                out2 = self._net(take_per_row(x, crop_offset + crop_left, crop_eright - crop_left))
+                
+                in2 = take_per_row(x, crop_offset + crop_left, crop_eright - crop_left)
+                mask = generate_binomial_mask(in2.size(0), in2.size(1)).to(self.device)
+                out2 = self._net(in2, mask)
                 out2 = out2[:, :crop_l]
                     
                 loss_val = hierarchical_contrastive_loss(

@@ -4,3 +4,5 @@ __pycache__
 training/*
 scripts/_nohup
 .rsync-filter
+.DS_Store
+launch.json
